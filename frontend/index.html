@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>DevOps App</title>
+</head>
+<body>
+  <h1>Dodaj użytkownika</h1>
+
+  <input id="name" placeholder="Imię">
+  <button id="sendBtn" onclick="send()">Wyślij</button>
+  <div id="message" style="margin-top: 10px; font-weight: bold;"></div>
+
+  <ul id="list"></ul>
+
+  <script>
+    const API = "http://localhost:3001";
+
+    async function send() {
+      try {
+        const name = document.getElementById("name").value;
+        const btn = document.getElementById("sendBtn");
+        const msgDiv = document.getElementById("message");
+        
+        if (!name.trim()) {
+          msgDiv.textContent = "❌ Wpisz imię!";
+          msgDiv.style.color = "red";
+          return;
+        }
+
+        btn.disabled = true;
+        msgDiv.textContent = "📤 Wysyłanie...";
+        msgDiv.style.color = "blue";
+        
+        console.log("Wysyłanie:", name);
+        const res = await fetch(API + "/users", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({name})
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
+        msgDiv.textContent = "✅ Dodano!";
+        msgDiv.style.color = "green";
+        document.getElementById("name").value = "";
+        console.log("Sukces!");
+        
+        setTimeout(() => msgDiv.textContent = "", 2000);
+        await load();
+      } catch (err) {
+        const msgDiv = document.getElementById("message");
+        msgDiv.textContent = `❌ Błąd: ${err.message}`;
+        msgDiv.style.color = "red";
+        console.error("Błąd:", err);
+      } finally {
+        document.getElementById("sendBtn").disabled = false;
+      }
+    }
+
+    async function load() {
+      try {
+        console.log("Ładowanie użytkowników...");
+        const res = await fetch(API + "/users");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
+        const data = await res.json();
+        const list = document.getElementById("list");
+        list.innerHTML = "";
+
+        data.forEach(u => {
+          const li = document.createElement("li");
+          li.innerText = u.name;
+          list.appendChild(li);
+        });
+        console.log("Załadowano:", data);
+      } catch (err) {
+        console.error("Błąd ładowania:", err);
+        document.getElementById("list").innerHTML = `<li style="color: red;">⚠️ Błąd połączenia: ${err.message}</li>`;
+      }
+    }
+
+    load();
+  </script>
+</body>
+</html>
