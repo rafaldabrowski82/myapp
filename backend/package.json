@@ -9,5 +9,5 @@
   "scripts": {
     "lint": "eslint .",
     "test": "echo 'no tests yet'"
-  }, 
+  }
 }
